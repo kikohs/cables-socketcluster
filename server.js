@@ -9,7 +9,7 @@ const uuid = require('uuid');
 const sccBrokerClient = require('scc-broker-client');
 
 const ENVIRONMENT = process.env.ENV || 'dev';
-const SOCKETCLUSTER_PORT = process.env.SOCKETCLUSTER_PORT || process.env.PORT || 8000;
+const SOCKETCLUSTER_PORT = process.env.SOCKETCLUSTER_PORT || 8000;
 const SOCKETCLUSTER_WS_ENGINE = process.env.SOCKETCLUSTER_WS_ENGINE || 'ws';
 const SOCKETCLUSTER_SOCKET_CHANNEL_LIMIT = Number(process.env.SOCKETCLUSTER_SOCKET_CHANNEL_LIMIT) || 1000;
 const SOCKETCLUSTER_LOG_LEVEL = process.env.SOCKETCLUSTER_LOG_LEVEL || 2;
