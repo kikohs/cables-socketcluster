@@ -121,6 +121,32 @@ npm run start:watch
 - Restrict access to the admin dashboard URL in production
 - For multiple instances, ensure your load balancer supports WebSocket connections
 
+## Releasing New Versions
+
+This project uses GitHub Actions for automated builds and releases. To create a new release:
+
+1. Make your changes to the codebase
+2. Commit and push your changes to the master branch
+3. Create and push a new tag with semantic versioning:
+
+```bash
+git tag v1.0.0  # Use appropriate version number (v0.1, v1.0.0, etc.)
+git push origin v1.0.0
+```
+
+This will automatically:
+- Build a new Docker image
+- Push the image to GitHub Container Registry (ghcr.io/kikohs/cables-socketcluster:1.0.0)
+- Create a GitHub Release with auto-generated release notes
+- Update the "latest" tag to point to the new version
+
+You can then pull the Docker image with:
+```bash
+docker pull ghcr.io/kikohs/cables-socketcluster:1.0.0
+# or using the latest tag
+docker pull ghcr.io/kikohs/cables-socketcluster:latest
+```
+
 ## License
 
 This project is licensed under the MIT License.
