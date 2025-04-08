@@ -1,5 +1,7 @@
 # Cables SocketCluster Dashboard
 
+[![Docker Build](https://github.com/kikohs/cables-socketcluster/actions/workflows/docker-build.yml/badge.svg)](https://github.com/kikohs/cables-socketcluster/actions/workflows/docker-build.yml)
+
 A real-time admin dashboard for monitoring SocketCluster servers with connection tracking, event logging, and message inspection.
 
 ## Features
