@@ -7,10 +7,9 @@ LABEL description="Docker file for SocketCluster with support for clustering and
 # Create app directory
 WORKDIR /usr/src/app
 
-# Install app dependencies
-# Copy package.json and package-lock.json first for better layer caching
+# Install build dependencies
 COPY package*.json ./
-RUN npm ci --only=production
+RUN npm ci
 
 # Copy app source
 COPY . .
@@ -23,4 +22,4 @@ ENV NODE_ENV=production
 ENV SOCKETCLUSTER_LOG_LEVEL=2
 
 # Start the application
-CMD ["npm", "run", "start:docker"]
+CMD ["node", "server.js"]
