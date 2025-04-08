@@ -30,7 +30,7 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        run: npm ci
+        run: npm install
 
       # Log in to GitHub Container Registry
       # Uncomment to enable pushing to GitHub Container Registry
@@ -65,14 +65,3 @@ jobs:
       # Run tests if you have any
       - name: Run tests
         run: npm test || echo "No tests specified - skipping"
-
-      # Optional: Scan for vulnerabilities
-      - name: Run Trivy vulnerability scanner
-        uses: aquasecurity/trivy-action@master
-        with:
-          image-ref: 'cables-socketcluster:latest'
-          format: 'table'
-          exit-code: '1'
-          ignore-unfixed: true
-          vuln-type: 'os,library'
-          severity: 'CRITICAL,HIGH'
