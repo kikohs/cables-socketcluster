@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>SocketCluster</title>
+    <title>SocketCluster Admin Dashboard</title>
     <link rel="icon" type="image/png" href="/favicon.ico">
-    <script type="text/javascript" src="/socketcluster-client.js"></script>
+    <script type="text/javascript" src="/socketcluster-client.min.js"></script>
     <style>
       @font-face {
         font-family: 'Roboto';
@@ -18,7 +18,6 @@
         width: 100%;
         height: 100%;
         color: #666666;
-        display: table;
         font-weight: 100;
         font-family: Arial, Helvetica, sans-serif;
       }
@@ -26,68 +25,812 @@
         font-weight: 300;
         color: #72B963;
       }
-      .container {
-        display: table-cell;
-        text-align: center;
-        vertical-align: middle;
+      .header {
+        background-color: #f5f5f5;
+        padding: 10px 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid #ddd;
       }
-      .content {
-        text-align: center;
-        display: inline-block;
+      .header-left {
+        display: flex;
+        align-items: center;
       }
-      .logo {
-        width: 200px;
-        height: 200px;
-        margin-bottom: 10px;
+      .logo-small {
+        width: 40px;
+        height: 40px;
+        margin-right: 10px;
       }
-      .title {
+      .header-title {
         font-family: 'Roboto', Helvetica, sans-serif;
-        font-size: 96px;
-        margin-bottom: 20px;
-      }
-      .text {
         font-size: 24px;
+        margin: 0;
+      }
+      .header-right {
+        display: flex;
+        align-items: center;
+      }
+      .btn {
+        background-color: #72B963;
+        color: white;
+        border: none;
+        padding: 8px 15px;
+        border-radius: 4px;
+        font-size: 14px;
+        cursor: pointer;
+      }
+      .btn:hover {
+        background-color: #62a953;
+      }
+      .btn-danger {
+        background-color: #d9534f;
+      }
+      .btn-danger:hover {
+        background-color: #c9302c;
+      }
+      .main {
+        display: grid;
+        grid-template-columns: 300px 1fr;
+        height: calc(100% - 61px);
+      }
+      .sidebar {
+        background-color: #f5f5f5;
+        padding: 20px;
+        border-right: 1px solid #ddd;
+        overflow-y: auto;
+      }
+      .status-box {
+        background-color: white;
+        border-radius: 5px;
+        padding: 15px;
         margin-bottom: 20px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
       }
-      .small {
-        font-size: 18px;
+      .status-title {
+        font-weight: bold;
+        margin-bottom: 10px;
+        color: #333;
       }
-      .github-button {
-        padding-top: 20px;
+      .status-item {
+        margin: 5px 0;
+        display: flex;
+        justify-content: space-between;
+      }
+      .stats-value {
+        font-weight: 500;
+      }
+      .connected {
+        color: #72B963;
+      }
+      .disconnected {
+        color: #d9534f;
+      }
+      .content-area {
+        padding: 20px;
+        overflow-y: auto;
+      }
+      .tabs {
+        display: flex;
+        margin-bottom: 20px;
+        border-bottom: 1px solid #ddd;
+      }
+      .tab {
+        padding: 10px 20px;
+        cursor: pointer;
+        margin-right: 5px;
+        border: 1px solid transparent;
+        border-bottom: none;
+        border-radius: 4px 4px 0 0;
+      }
+      .tab.active {
+        background-color: #f5f5f5;
+        border-color: #ddd;
+        margin-bottom: -1px;
+      }
+      .tab-content {
+        display: none;
+      }
+      .tab-content.active {
+        display: block;
+      }
+      .activity-log {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 10px;
+      }
+      .activity-log th {
+        text-align: left;
+        padding: 10px;
+        background-color: #f5f5f5;
+        border-bottom: 2px solid #ddd;
+      }
+      .activity-log td {
+        padding: 10px;
+        border-bottom: 1px solid #ddd;
+      }
+      .activity-log tr:hover {
+        background-color: #f9f9f9;
+      }
+      .badge {
+        display: inline-block;
+        padding: 3px 8px;
+        border-radius: 3px;
+        font-size: 12px;
+        font-weight: bold;
+        color: white;
+      }
+      .badge-connection {
+        background-color: #5bc0de;
+      }
+      .badge-disconnect {
+        background-color: #d9534f;
+      }
+      .badge-customEvent {
+        background-color: #f0ad4e;
+      }
+      .badge-login {
+        background-color: #72B963;
+      }
+      .badge-message {
+        background-color: #ff9800;
+      }
+      .badge-subscribe {
+        background-color: #9c27b0;
+      }
+      .badge-unsubscribe {
+        background-color: #607d8b;
+      }
+      .loading {
+        text-align: center;
+        padding: 20px;
+        font-style: italic;
+        color: #888;
+      }
+      #connections-count {
+        padding: 3px 6px;
+        background-color: #72B963;
+        color: white;
+        border-radius: 10px;
+        font-size: 12px;
+        margin-left: 5px;
+      }
+      #auth-required {
+        display: none;
+        text-align: center;
+        padding: 50px 20px;
+      }
+      #dashboard {
+        display: none;
       }
     </style>
   </head>
   <body>
-    <div class="container">
-      <div class="content">
-        <img class="logo" src="img/logo.png" alt="Logo" />
-        <div class="title">
-          SocketCluster
+    <div id="auth-required">
+      <h2>Authentication Required</h2>
+      <p>Please log in to access the dashboard.</p>
+      <button id="goto-login" class="btn">Go to Login</button>
+    </div>
+
+    <div id="dashboard">
+      <div class="header">
+        <div class="header-left">
+          <img class="logo-small" src="img/logo.png" alt="Logo" />
+          <h1 class="header-title">SocketCluster Admin <span id="connections-count">0</span></h1>
         </div>
-        <div class="small">
-          <a href="https://socketcluster.io/docs/guides/">Guides</a> <strong>&middot;</strong>
-          <a href="https://socketcluster.io/docs/api/">API Docs</a>
+        <div class="header-right">
+          <button id="logout-btn" class="btn btn-danger">Logout</button>
         </div>
-        <p class="github-button">
-          <iframe src="https://ghbtns.com/github-btn.html?user=socketcluster&repo=socketcluster&type=star&count=true&size=large" frameborder="0" scrolling="0" width="160px" height="30px"></iframe>
-        </p>
+      </div>
+
+      <div class="main">
+        <div class="sidebar">
+          <div class="status-box">
+            <div class="status-title">Connection Status</div>
+            <div id="connectionStatus" class="status-item disconnected">Disconnected</div>
+          </div>
+
+          <div class="status-box">
+            <div class="status-title">Server Information</div>
+            <div class="status-item">
+              <span>Host:</span>
+              <span id="url" class="stats-value"></span>
+            </div>
+            <div class="status-item">
+              <span>Port:</span>
+              <span id="port" class="stats-value"></span>
+            </div>
+            <div class="status-item">
+              <span>Instance ID:</span>
+              <span id="instance-id" class="stats-value">Loading...</span>
+            </div>
+          </div>
+
+          <div class="status-box">
+            <div class="status-title">Server Statistics</div>
+            <div class="status-item">
+              <span>Active Connections:</span>
+              <span id="connection-count" class="stats-value" style="font-weight: bold; color: #72B963; font-size: 1.2em;">0</span>
+            </div>
+            <div class="status-item">
+              <span>Uptime:</span>
+              <span id="uptime" class="stats-value">0s</span>
+            </div>
+            <div class="status-item">
+              <span>Memory:</span>
+              <span id="memory" class="stats-value">0 MB</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="content-area">
+          <div class="tabs">
+            <div class="tab active" data-tab="activity">Activity Log</div>
+            <div class="tab" data-tab="messages">Messages</div>
+            <div class="tab" data-tab="connections">Connections</div>
+            <div class="tab" data-tab="events">Event Log</div>
+          </div>
+
+          <div id="activity-tab" class="tab-content active">
+            <h2>Real-time Activity Log</h2>
+            <p>This log shows all activity on the SocketCluster server.</p>
+            
+            <div style="margin-bottom: 15px;">
+              <button id="clear-logs" class="btn btn-danger" style="margin-right: 10px;">Clear Logs</button>
+              <span style="margin-left: 10px;">
+                <input type="checkbox" id="auto-refresh" checked>
+                <label for="auto-refresh">Auto-refresh logs</label>
+              </span>
+            </div>
+            
+            <table class="activity-log">
+              <thead>
+                <tr>
+                  <th width="12%">Time</th>
+                  <th width="10%">Type</th>
+                  <th width="18%">ID/Channel</th>
+                  <th>Details</th>
+                </tr>
+              </thead>
+              <tbody id="activity-log">
+                <tr>
+                  <td colspan="4" class="loading">Loading activity data...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          
+          <div id="messages-tab" class="tab-content">
+            <h2>Messages</h2>
+            <p>This log shows all SocketCluster messages between clients.</p>
+            
+            <table class="activity-log">
+              <thead>
+                <tr>
+                  <th width="12%">Time</th>
+                  <th width="10%">Type</th>
+                  <th width="18%">Channel</th>
+                  <th>Data</th>
+                </tr>
+              </thead>
+              <tbody id="messages-log">
+                <tr>
+                  <td colspan="4" class="loading">Loading message data...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          
+          <div id="connections-tab" class="tab-content">
+            <h2>Connection Activity</h2>
+            <p>This log shows all client connections and disconnections.</p>
+            
+            <table class="activity-log">
+              <thead>
+                <tr>
+                  <th width="12%">Time</th>
+                  <th width="10%">Type</th>
+                  <th width="18%">Socket ID</th>
+                  <th>Client Info</th>
+                </tr>
+              </thead>
+              <tbody id="connections-log">
+                <tr>
+                  <td colspan="4" class="loading">Loading connection data...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div id="events-tab" class="tab-content">
+            <h2>Socket Events</h2>
+            <p>This log shows WebSocket events from your current connection.</p>
+            <div id="events" class="status-box">
+              <div class="loading">Waiting for events...</div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
+
     <script type="text/javascript">
-      // Initiate the connection to the server
-      let socket = socketClusterClient.create();
-
-      (async () => {
-        for await (let {error} of socket.listener('error')) {
-          console.error(error);
+      document.addEventListener('DOMContentLoaded', () => {
+        // Check authentication
+        const authToken = localStorage.getItem('authToken');
+        const dashboardEl = document.getElementById('dashboard');
+        const authRequiredEl = document.getElementById('auth-required');
+        
+        if (!authToken) {
+          dashboardEl.style.display = 'none';
+          authRequiredEl.style.display = 'block';
+          
+          document.getElementById('goto-login').addEventListener('click', () => {
+            window.location.href = '/login.html';
+          });
+          
+          return;
         }
-      })();
-
-      (async () => {
-        for await (let event of socket.listener('connect')) {
-          console.log('Socket is connected');
+        
+        dashboardEl.style.display = 'block';
+        authRequiredEl.style.display = 'none';
+        
+        // Tab switching
+        const tabs = document.querySelectorAll('.tab');
+        tabs.forEach(tab => {
+          tab.addEventListener('click', () => {
+            const tabName = tab.getAttribute('data-tab');
+            
+            // Update active tab
+            tabs.forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            
+            // Show active content
+            document.querySelectorAll('.tab-content').forEach(content => {
+              content.classList.remove('active');
+            });
+            document.getElementById(`${tabName}-tab`).classList.add('active');
+          });
+        });
+        
+        // Logout functionality
+        document.getElementById('logout-btn').addEventListener('click', () => {
+          localStorage.removeItem('authToken');
+          window.location.href = '/login.html';
+        });
+        
+        // Display server information
+        document.getElementById('url').textContent = window.location.hostname || 'localhost';
+        document.getElementById('port').textContent = window.location.port || '8000';
+        
+        // Initialize event log
+        const eventsElement = document.getElementById('events');
+        const connectionStatus = document.getElementById('connectionStatus');
+        const activityLogEl = document.getElementById('activity-log');
+        const connectionsCountEl = document.getElementById('connections-count');
+        const connectionCountEl = document.getElementById('connection-count');
+        
+        function logEvent(message) {
+          const timestamp = new Date().toLocaleTimeString();
+          
+          // Clear placeholder if first message
+          if (eventsElement.innerHTML.includes('Waiting for events')) {
+            eventsElement.innerHTML = '';
+          }
+          
+          // Add the new event
+          const eventDiv = document.createElement('div');
+          eventDiv.className = 'status-item';
+          eventDiv.innerHTML = `${timestamp}: ${message}`;
+          eventsElement.insertBefore(eventDiv, eventsElement.firstChild);
         }
-      })();
+        
+        function formatActivityTime(isoTimestamp) {
+          const date = new Date(isoTimestamp);
+          return date.toLocaleTimeString();
+        }
+        
+        function formatActivityType(type) {
+          const badgeClasses = {
+            connection: 'badge-connection',
+            disconnect: 'badge-disconnect',
+            customEvent: 'badge-customEvent',
+            login: 'badge-login',
+            message: 'badge-message',
+            subscribe: 'badge-subscribe',
+            unsubscribe: 'badge-unsubscribe'
+          };
+          
+          const badgeClass = badgeClasses[type] || '';
+          return `<span class="badge ${badgeClass}">${type}</span>`;
+        }
+        
+        function formatDetails(details) {
+          if (typeof details === 'object') {
+            // Special formatting for message data which might contain JSON
+            if (details.data && details.type === 'message') {
+              try {
+                let parsedData = details.data;
+                // If it looks like JSON string, try to parse it for better display
+                if (typeof details.data === 'string' && 
+                    (details.data.startsWith('{') || details.data.startsWith('['))) {
+                  parsedData = JSON.parse(details.data);
+                  parsedData = JSON.stringify(parsedData, null, 2);
+                  // Format as code block
+                  parsedData = `<pre style="max-height: 200px; overflow: auto; background: #f5f5f5; padding: 5px; border-radius: 3px;">${parsedData}</pre>`;
+                }
+                
+                return Object.entries(details)
+                  .map(([key, value]) => {
+                    if (key === 'data') {
+                      return `<strong>${key}:</strong><br>${parsedData}`;
+                    } else if (key === 'headers' && typeof value === 'object') {
+                      return `<strong>${key}:</strong><br><pre style="max-height: 100px; overflow: auto; background: #f5f5f5; padding: 5px; border-radius: 3px;">${JSON.stringify(value, null, 2)}</pre>`;
+                    } else {
+                      return `<strong>${key}:</strong> ${value}`;
+                    }
+                  })
+                  .join('<br>');
+              } catch (err) {
+                console.error('Error formatting message data', err);
+              }
+            }
+            
+            // Default formatting for other object types
+            return Object.entries(details)
+              .map(([key, value]) => {
+                if (typeof value === 'object') {
+                  return `<strong>${key}:</strong><br><pre style="max-height: 100px; overflow: auto; background: #f5f5f5; padding: 5px; border-radius: 3px;">${JSON.stringify(value, null, 2)}</pre>`;
+                } else {
+                  return `<strong>${key}:</strong> ${value}`;
+                }
+              })
+              .join('<br>');
+          }
+          return details;
+        }
+        
+        function updateActivityLog(activities) {
+          if (!activities || !activities.length) {
+            activityLogEl.innerHTML = '<tr><td colspan="4" class="loading">No activity data yet</td></tr>';
+            return;
+          }
+          
+          activityLogEl.innerHTML = '';
+          
+          activities.forEach(activity => {
+            const row = document.createElement('tr');
+            
+            row.innerHTML = `
+              <td>${formatActivityTime(activity.timestamp)}</td>
+              <td>${formatActivityType(activity.type)}</td>
+              <td>${activity.id.substring(0, 8)}</td>
+              <td>${formatDetails(activity.details)}</td>
+            `;
+            
+            activityLogEl.appendChild(row);
+          });
+        }
+        
+        // Fetch server stats periodically
+        async function fetchServerStats() {
+          try {
+            const response = await fetch('/api/stats', {
+              headers: {
+                'x-auth-token': authToken
+              }
+            });
+            
+            if (response.status === 200) {
+              const data = await response.json();
+              
+              // Update stats display
+              document.getElementById('instance-id').textContent = data.instanceId.substring(0, 8);
+              document.getElementById('uptime').textContent = formatUptime(data.uptime);
+              document.getElementById('memory').textContent = Math.round(data.memoryUsage.heapUsed / 1024 / 1024) + ' MB';
+              
+              // Explicitly handle connection count
+              const connectionCount = data.connectionCount || 0;
+              document.getElementById('connection-count').textContent = connectionCount;
+              connectionsCountEl.textContent = connectionCount;
+              
+              // Update connection status based on connection count
+              if (connectionCount > 0) {
+                connectionStatus.textContent = `Connected (${connectionCount} active)`;
+                connectionStatus.className = 'status-item connected';
+              } else {
+                connectionStatus.textContent = 'Disconnected (0 active)';
+                connectionStatus.className = 'status-item disconnected';
+              }
+            }
+          } catch (error) {
+            console.error('Error fetching server stats:', error);
+          }
+          
+          // Update every 1 second for more responsive connection status
+          setTimeout(fetchServerStats, 1000);
+        }
+        
+        // Format uptime in a more readable way
+        function formatUptime(seconds) {
+          seconds = Math.floor(seconds);
+          if (seconds < 60) return seconds + 's';
+          
+          const minutes = Math.floor(seconds / 60);
+          if (minutes < 60) return minutes + 'm ' + (seconds % 60) + 's';
+          
+          const hours = Math.floor(minutes / 60);
+          if (hours < 24) return hours + 'h ' + (minutes % 60) + 'm';
+          
+          const days = Math.floor(hours / 24);
+          return days + 'd ' + (hours % 24) + 'h';
+        }
+        
+        // Clear logs function
+        function clearLogs() {
+          // Make a request to clear server logs
+          try {
+            fetch('/api/logs/clear', {
+              method: 'POST',
+              headers: {
+                'x-auth-token': authToken
+              }
+            }).then(response => {
+              if (response.status === 200) {
+                // Clear all log displays
+                activityLogEl.innerHTML = '<tr><td colspan="4" class="loading">No activity data yet</td></tr>';
+                document.getElementById('messages-log').innerHTML = '<tr><td colspan="4" class="loading">No message data yet</td></tr>';
+                document.getElementById('connections-log').innerHTML = '<tr><td colspan="4" class="loading">No connection data yet</td></tr>';
+              }
+            });
+          } catch (error) {
+            console.error('Error clearing logs:', error);
+          }
+        }
+        
+        // Attach clear logs button event
+        document.getElementById('clear-logs').addEventListener('click', clearLogs);
+        
+        // Auto-refresh checkbox handler
+        const autoRefreshCheckbox = document.getElementById('auto-refresh');
+        let autoRefreshEnabled = autoRefreshCheckbox.checked;
+        
+        autoRefreshCheckbox.addEventListener('change', (e) => {
+          autoRefreshEnabled = e.target.checked;
+        });
+        
+        // Fetch initial activity log
+        async function fetchActivityLog() {
+          if (!autoRefreshEnabled) return;
+          
+          try {
+            const response = await fetch('/api/logs', {
+              headers: {
+                'x-auth-token': authToken
+              }
+            });
+            
+            if (response.status === 200) {
+              const data = await response.json();
+              updateActivityLog(data.logs);
+              
+              // Always update all tabs regardless of visible state
+              
+              // Update message logs
+              updateMessagesLog(data.logs.filter(log => {
+                // Check for message type or messages that involve channels
+                return log.type === 'message' || 
+                       (log.details && (log.details.channel || log.details.type === 'publish'));
+              }));
+              
+              // Update connection logs
+              updateConnectionsLog(data.logs.filter(log => {
+                return log.type === 'connection' || 
+                       log.type === 'disconnect' || 
+                       log.type === 'subscribe' || 
+                       log.type === 'unsubscribe';
+              }));
+            }
+          } catch (error) {
+            console.error('Error fetching activity log:', error);
+          }
+        }
+        
+        // Update messages log
+        function updateMessagesLog(messages) {
+          const messagesLogEl = document.getElementById('messages-log');
+          
+          if (!messages || !messages.length) {
+            messagesLogEl.innerHTML = '<tr><td colspan="4" class="loading">No message data yet</td></tr>';
+            return;
+          }
+          
+          messagesLogEl.innerHTML = '';
+          
+          messages.forEach(message => {
+            const row = document.createElement('tr');
+            const details = message.details;
+            
+            let channelDisplay = details.channel || 'N/A';
+            let dataDisplay = '';
+            
+            try {
+              if (details.data) {
+                let parsedData = details.data;
+                // If it looks like JSON string, try to parse it for better display
+                if (typeof details.data === 'string' && 
+                    (details.data.startsWith('{') || details.data.startsWith('['))) {
+                  parsedData = JSON.parse(details.data);
+                  parsedData = JSON.stringify(parsedData, null, 2);
+                  // Format as code block
+                  dataDisplay = `<pre style="max-height: 200px; overflow: auto; background: #f5f5f5; padding: 5px; border-radius: 3px;">${parsedData}</pre>`;
+                } else {
+                  dataDisplay = details.data;
+                }
+              }
+            } catch (err) {
+              dataDisplay = details.data || 'N/A';
+            }
+            
+            row.innerHTML = `
+              <td>${formatActivityTime(message.timestamp)}</td>
+              <td>${formatActivityType(details.type || 'publish')}</td>
+              <td>${channelDisplay}</td>
+              <td>${dataDisplay}</td>
+            `;
+            
+            messagesLogEl.appendChild(row);
+          });
+        }
+        
+        // Update connections log
+        function updateConnectionsLog(connections) {
+          const connectionsLogEl = document.getElementById('connections-log');
+          
+          if (!connections || !connections.length) {
+            connectionsLogEl.innerHTML = '<tr><td colspan="4" class="loading">No connection data yet</td></tr>';
+            return;
+          }
+          
+          connectionsLogEl.innerHTML = '';
+          
+          connections.forEach(connection => {
+            const row = document.createElement('tr');
+            const details = connection.details;
+            
+            let socketId = details.id || 'N/A';
+            let clientInfo = '';
+            
+            if (details.ip) {
+              clientInfo += `<strong>IP:</strong> ${details.ip}<br>`;
+            }
+            
+            if (details.url) {
+              clientInfo += `<strong>URL:</strong> ${details.url}<br>`;
+            }
+            
+            if (details.reason) {
+              clientInfo += `<strong>Disconnect reason:</strong> ${details.reason}<br>`;
+            }
+            
+            if (details.headers) {
+              const userAgent = details.headers['user-agent'] || 'Unknown';
+              clientInfo += `<strong>User Agent:</strong> ${userAgent}<br>`;
+            }
+            
+            row.innerHTML = `
+              <td>${formatActivityTime(connection.timestamp)}</td>
+              <td>${formatActivityType(connection.type)}</td>
+              <td>${socketId}</td>
+              <td>${clientInfo}</td>
+            `;
+            
+            connectionsLogEl.appendChild(row);
+          });
+        }
+        
+        // Periodic polling for activity logs
+        function startPolling() {
+          // Fetch immediately
+          fetchActivityLog();
+          
+          // Then set up polling
+          setInterval(() => {
+            if (autoRefreshEnabled) {
+              fetchActivityLog();
+            }
+          }, 3000); // Poll every 3 seconds
+        }
+        
+        // Start all data fetching
+        fetchServerStats();
+        startPolling();
+        
+        // Initiate the connection to the server
+        let socket = socketClusterClient.create({
+          hostname: window.location.hostname,
+          port: window.location.port || 8000,
+          autoConnect: true,
+          autoReconnect: true,
+          autoReconnectOptions: {
+            initialDelay: 1000,
+            randomness: 1000,
+            multiplier: 1.5,
+            maxDelay: 10000
+          }
+        });
+
+        // Handle errors
+        (async () => {
+          for await (let {error} of socket.listener('error')) {
+            console.error(error);
+            logEvent(`Error: ${error.message || 'Unknown error'}`);
+          }
+        })();
+
+        // Handle connection events
+        (async () => {
+          for await (let event of socket.listener('connect')) {
+            console.log('Socket is connected');
+            connectionStatus.textContent = 'Connected';
+            connectionStatus.className = 'status-item connected';
+            logEvent('Connected to server');
+            
+            // Register a test event to generate some activity
+            socket.invoke('registerEvent', {
+              event: 'admin_connected',
+              details: {
+                timestamp: new Date().toISOString(),
+                userAgent: navigator.userAgent
+              }
+            }).then(result => {
+              console.log('Registered event:', result);
+            }).catch(err => {
+              console.error('Failed to register event:', err);
+            });
+            
+            // Log successful connection to event log
+            logEvent(`Successfully connected to SocketCluster server v19`);
+            
+            // Subscribe to activity channel
+            (async () => {
+              try {
+                const channel = socket.subscribe('activity');
+                
+                // Wait for the subscription to be established
+                await channel.listener('subscribe').once();
+                console.log('Subscribed to activity channel');
+                logEvent(`Subscribed to activity channel`);
+                
+                // Listen for publications on the channel
+                for await (let data of channel) {
+                  console.log('Activity update:', data);
+                  logEvent(`Received activity update: ${data.type}`);
+                  
+                  if (autoRefreshEnabled) {
+                    // Fetch latest log to update the UI
+                    fetchActivityLog();
+                  }
+                }
+              } catch (err) {
+                console.error('Channel subscription error:', err);
+                logEvent(`Error subscribing to channel: ${err.message}`);
+              }
+            })();
+          }
+        })();
+        
+        // Handle disconnection events
+        (async () => {
+          for await (let event of socket.listener('disconnect')) {
+            console.log('Socket is disconnected');
+            connectionStatus.textContent = 'Disconnected';
+            connectionStatus.className = 'status-item disconnected';
+            logEvent('Disconnected from server');
+          }
+        })();
+        
+        logEvent('Initializing connection...');
+      });
     </script>
   </body>
 </html>
