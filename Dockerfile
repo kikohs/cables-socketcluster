@@ -7,9 +7,9 @@ LABEL description="Docker file for SocketCluster with support for clustering and
 # Create app directory
 WORKDIR /usr/src/app
 
-# Install build dependencies
+# Install dependencies
 COPY package*.json ./
-RUN npm ci
+RUN npm install
 
 # Copy app source
 COPY . .
