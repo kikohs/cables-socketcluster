@@ -1,15 +1,26 @@
-FROM node:12.15.0-slim
+FROM node:20-slim
 
-LABEL maintainer="Jonathan Gros-Dubois"
-LABEL version="16.0.3"
-LABEL description="Docker file for SocketCluster with support for clustering."
+LABEL maintainer="Kirell Benzi"
+LABEL version="19.2.3"
+LABEL description="Docker file for SocketCluster with support for clustering and admin dashboard."
 
-RUN mkdir -p /usr/src/
-WORKDIR /usr/src/
-COPY . /usr/src/
+# Create app directory
+WORKDIR /usr/src/app
 
-RUN npm install .
+# Install app dependencies
+# Copy package.json and package-lock.json first for better layer caching
+COPY package*.json ./
+RUN npm ci --only=production
 
+# Copy app source
+COPY . .
+
+# Expose port for app
 EXPOSE 8000
 
+# Set environment variables
+ENV NODE_ENV=production
+ENV SOCKETCLUSTER_LOG_LEVEL=2
+
+# Start the application
 CMD ["npm", "run", "start:docker"]
