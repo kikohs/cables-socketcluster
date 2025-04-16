@@ -51,6 +51,10 @@ jobs:
             type=semver,pattern={{major}}.{{minor}}
             type=ref,event=branch
             type=sha
+            # Add latest tag for default branch pushes
+            type=raw,value=latest,enable={{is_default_branch}}
+            # Add latest tag for version tags
+            type=raw,value=latest,enable={{type=tag}}
 
       # Build Docker image
       - name: Build Docker image
